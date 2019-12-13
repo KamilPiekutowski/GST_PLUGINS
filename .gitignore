@@ -1,1 +1,4 @@
 gst-test
+run_pipeline
+*~
+*.o
