@@ -1,5 +1,6 @@
 #include <gst/gst.h>
 #include <glib.h>
+#include <stdio.h>
 
 static void
 on_pad_added (GstElement *element,
@@ -8,8 +9,4 @@ on_pad_added (GstElement *element,
 
 
 
-GstElement* ducati_pipeline(GstElement *m_pipeline)
-{
-
-  return m_pipeline;
-}
+GstElement* get_ducati_pipeline(char* filename);
