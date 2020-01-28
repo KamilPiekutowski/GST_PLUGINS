@@ -259,7 +259,14 @@ static GstFlowReturn
 gst_cavideoconverter_chain (GstPad * pad, GstObject * parent, GstBuffer * buf)
 {
   Gstcavideoconverter *filter;
-  GstBuffer* outBuf = gst_buffer_make_writable(buf);
+
+  gsize bufferSize = gst_buffer_get_size(buf);
+  GstBuffer* newBuf = gst_buffer_new_and_alloc(bufferSize);
+
+  if (!newBuf)
+        return 0;
+
+  gst_buffer_copy_into(newBuf, buf, (GstBufferCopyFlags) (GST_BUFFER_COPY_METADATA), 0, bufferSize);
 
   filter = GST_CAVIDEOCONVERTER (parent);
   
@@ -267,7 +274,7 @@ gst_cavideoconverter_chain (GstPad * pad, GstObject * parent, GstBuffer * buf)
   if(!currCaps)
   {
     g_print ("CAnnot get currentCaps.\n");
-    return gst_pad_push (filter->srcpad, outBuf);
+    return gst_pad_push (filter->srcpad, buf);
   }
 
   GstVideoInfo videoInfo;
@@ -275,37 +282,66 @@ gst_cavideoconverter_chain (GstPad * pad, GstObject * parent, GstBuffer * buf)
   if (!gst_video_info_from_caps(&videoInfo, currCaps))
   {
     g_print ("Cannot get video info from caps.\n");
-    return gst_pad_push (filter->srcpad, outBuf);
+    return gst_pad_push (filter->srcpad, buf);
   }
 
   g_print("N_PLANES = %d\n", (GST_VIDEO_INFO_N_PLANES(&videoInfo)));
 
-  g_print("Have data of size %d bytes\n", gst_buffer_get_size(outBuf));
+  g_print("Have data of size %d bytes\n", gst_buffer_get_size(buf));
  
-  GstVideoFrame videoFrame;
+  GstVideoFrame srcVideoFrame;
+  GstVideoFrame dstVideoFrame;
 
 
-  if (!gst_video_frame_map(&videoFrame, &videoInfo, buf, GST_MAP_READ))
+  if (!gst_video_frame_map(&srcVideoFrame, &videoInfo, buf, GST_MAP_READ))
   {
     g_print ("Cannot map videoframe from buffer.\n");
+    gst_buffer_unref(newBuf);
+    return gst_pad_push (filter->srcpad, buf);
+  }
+
+  if (!gst_video_frame_map(&dstVideoFrame, &videoInfo, newBuf, GST_MAP_WRITE))
+  {
+    g_print ("Cannot map videoframe from buffer.\n");
+    gst_video_frame_unmap(&srcVideoFrame);
+    gst_buffer_unref(newBuf);
+    return gst_pad_push (filter->srcpad, buf);
   }
   
-  unsigned char* bufferUVData = (unsigned char*) (GST_VIDEO_FRAME_PLANE_DATA(&videoFrame, 0));
+  g_print ("Created video frames.\n");
 
-  int stride = GST_VIDEO_FRAME_PLANE_STRIDE(&videoFrame, 0);
-  int width = GST_VIDEO_FRAME_WIDTH(&videoFrame);
-  int height = GST_VIDEO_FRAME_HEIGHT(&videoFrame);
+  unsigned char* srcUVData = (unsigned char*) (GST_VIDEO_FRAME_PLANE_DATA(&srcVideoFrame, 0));
+  unsigned char* dstUVData = (unsigned char*) (GST_VIDEO_FRAME_PLANE_DATA(&dstVideoFrame, 0));
+
+  int stride = GST_VIDEO_FRAME_PLANE_STRIDE(&srcVideoFrame, 0);
+  int width = GST_VIDEO_FRAME_WIDTH(&srcVideoFrame);
+  int height = GST_VIDEO_FRAME_HEIGHT(&srcVideoFrame);
 
   g_print("stride: %d, width: %d, height: %d\n", stride, width, height);
 
   if (filter->silent == FALSE)
     g_print ("I'm plugged, therefore I'm in.\n");
 
-  for(int i=0;i < 100; i++)
+  for(int i=0;i < 1; i++)
   {
-     g_print("bufferUVData: %d\n", bufferUVData[i]);
+     //dstUVData[i] = srcUVData[i];
+     if(srcUVData[i] != 0)
+     {
+       g_print ("srcUVdata[i] = %d.\n", srcUVData[i]);
+     }
+
   }
+
   /* just push out the incoming buffer without touching it */
+
+  //gst_video_frame_unmap(&videoFrame);
+  gst_video_frame_unmap(&srcVideoFrame);
+  gst_video_frame_unmap(&dstVideoFrame);
+  //sample = adoptGRef(gst_sample_new(newBuffer, priv->currentCaps, nullptr, nullptr));
+
+  gst_buffer_unref(buf);
+  buf = newBuf;
+  
   return gst_pad_push (filter->srcpad, buf);
 }
 
