@@ -96,7 +96,7 @@ enum
  * describe the real formats here.
  */
 
-static GstStaticPadTemplate sink_template = GST_STATIC_PAD_TEMPLATE ("sink",
+static GstStaticPadTemplate sink_factory = GST_STATIC_PAD_TEMPLATE ("sink",
     GST_PAD_SINK,
     GST_PAD_ALWAYS,
     GST_STATIC_CAPS (GST_VIDEO_CAPS_MAKE ("{ NV12, NV21}") ";"
@@ -105,10 +105,13 @@ static GstStaticPadTemplate sink_template = GST_STATIC_PAD_TEMPLATE ("sink",
     );
 
 static GstStaticPadTemplate src_factory = GST_STATIC_PAD_TEMPLATE ("src",
-    GST_PAD_SRC,
+    GST_PAD_SINK,
     GST_PAD_ALWAYS,
-    GST_STATIC_CAPS ("ANY")
+    GST_STATIC_CAPS (GST_VIDEO_CAPS_MAKE ("{ NV12, NV21}") ";"
+        GST_VIDEO_CAPS_MAKE_WITH_FEATURES (GST_CAPS_FEATURE_MEMORY_DMABUF,
+            VIDEO_FORMATS))
     );
+
 
 #define gst_myfilter_parent_class parent_class
 G_DEFINE_TYPE (Gstmyfilter, gst_myfilter, GST_TYPE_ELEMENT);
@@ -249,6 +252,27 @@ gst_myfilter_chain (GstPad * pad, GstObject * parent, GstBuffer * buf)
   Gstmyfilter *filter;
 
   filter = GST_MYFILTER (parent);
+  //GstCaps* currCaps = gst_pad_get_current_caps (filter->srcpad);
+  //if(!currCaps)
+  //{
+  //  g_print ("CAnnot get currentCaps.\n");
+  //  return gst_pad_push (filter->srcpad, buf);
+  //}
+
+  //GstSample* sample = gst_sample_new(buf, currCaps , NULL, NULL);
+
+  //GstCaps* caps = gst_sample_get_caps(sample);
+
+
+  //GstVideoInfo videoInfo;
+  //gst_video_info_init(&videoInfo);
+  //if (!gst_video_info_from_caps(&videoInfo, caps))
+  //{
+  //  g_print ("Cannot get video infor from caps.\n");
+  //  return gst_pad_push (filter->srcpad, buf);
+  //}
+
+  //g_print("N_PLANES = %d\n", (GST_VIDEO_INFO_N_PLANES(&videoInfo) == 1));
 
   if (filter->silent == FALSE)
     g_print ("I'm plugged, therefore I'm in.\n");
