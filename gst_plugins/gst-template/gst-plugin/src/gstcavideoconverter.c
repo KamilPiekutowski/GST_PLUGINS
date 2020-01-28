@@ -61,11 +61,21 @@
 #endif
 
 #include <gst/gst.h>
+#include <gst/video/gstvideometa.h>
+#include <gst/video/video.h>
 
 #include "gstcavideoconverter.h"
 
 GST_DEBUG_CATEGORY_STATIC (gst_cavideoconverter_debug);
 #define GST_CAT_DEFAULT gst_cavideoconverter_debug
+
+#define GST_CAPS_FORMAT "{ BGRx, BGRA, RGBx, xBGR, xRGB, RGBA, ABGR, ARGB, RGB, BGR, " \
+    "RGB16, BGR16, YUY2, YVYU, UYVY, AYUV, NV12, NV21, NV16, " \
+    "YUV9, YVU9, Y41B, I420, YV12, Y42B, v308 }"
+
+#ifndef GST_CAPS_FEATURE_MEMORY_DMABUF
+#define GST_CAPS_FEATURE_MEMORY_DMABUF "memory:DMABuf"
+#endif
 
 /* Filter signals and args */
 enum
@@ -87,8 +97,16 @@ enum
 static GstStaticPadTemplate sink_factory = GST_STATIC_PAD_TEMPLATE ("sink",
     GST_PAD_SINK,
     GST_PAD_ALWAYS,
-    GST_STATIC_CAPS ("ANY")
+    GST_STATIC_CAPS (GST_VIDEO_CAPS_MAKE (GST_CAPS_FORMAT) ";"
+        GST_VIDEO_CAPS_MAKE_WITH_FEATURES (GST_CAPS_FEATURE_MEMORY_DMABUF,
+            GST_CAPS_FORMAT))
     );
+
+//static GstStaticPadTemplate sink_factory = GST_STATIC_PAD_TEMPLATE ("sink",
+//    GST_PAD_SINK,
+//    GST_PAD_ALWAYS,
+//    GST_STATIC_CAPS ("ANY")
+//    );
 
 static GstStaticPadTemplate src_factory = GST_STATIC_PAD_TEMPLATE ("src",
     GST_PAD_SRC,
