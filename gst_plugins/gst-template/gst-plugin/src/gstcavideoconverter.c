@@ -94,7 +94,7 @@ enum
  *
  * describe the real formats here.
  */
-static GstStaticPadTemplate sink_factory = GST_STATIC_PAD_TEMPLATE ("sink",
+static GstStaticPadTemplate sink_factory = GST_STATIC_PAD_TEMPLATE ("video_sink",
     GST_PAD_SINK,
     GST_PAD_ALWAYS,
     GST_STATIC_CAPS (GST_VIDEO_CAPS_MAKE (GST_CAPS_FORMAT) ";"
@@ -259,35 +259,52 @@ static GstFlowReturn
 gst_cavideoconverter_chain (GstPad * pad, GstObject * parent, GstBuffer * buf)
 {
   Gstcavideoconverter *filter;
+  GstBuffer* outBuf = gst_buffer_make_writable(buf);
 
   filter = GST_CAVIDEOCONVERTER (parent);
   
-  //GstCaps* currCaps = gst_pad_get_current_caps (filter->srcpad);
-  //if(!currCaps)
-  //{
-  //  g_print ("CAnnot get currentCaps.\n");
-  //  return gst_pad_push (filter->srcpad, buf);
-  //}
+  GstCaps* currCaps = gst_pad_get_current_caps (filter->srcpad);
+  if(!currCaps)
+  {
+    g_print ("CAnnot get currentCaps.\n");
+    return gst_pad_push (filter->srcpad, outBuf);
+  }
 
-  //GstSample* sample = gst_sample_new(buf, currCaps , NULL, NULL);
+  GstVideoInfo videoInfo;
+  gst_video_info_init(&videoInfo);
+  if (!gst_video_info_from_caps(&videoInfo, currCaps))
+  {
+    g_print ("Cannot get video info from caps.\n");
+    return gst_pad_push (filter->srcpad, outBuf);
+  }
 
-  //GstCaps* caps = gst_sample_get_caps(sample);
+  g_print("N_PLANES = %d\n", (GST_VIDEO_INFO_N_PLANES(&videoInfo)));
+
+  g_print("Have data of size %d bytes\n", gst_buffer_get_size(outBuf));
+ 
+  GstVideoFrame videoFrame;
 
 
-  //GstVideoInfo videoInfo;
-  //gst_video_info_init(&videoInfo);
-  //if (!gst_video_info_from_caps(&videoInfo, caps))
-  //{
-  //  g_print ("Cannot get video infor from caps.\n");
-  //  return gst_pad_push (filter->srcpad, buf);
-  //}
+  if (!gst_video_frame_map(&videoFrame, &videoInfo, buf, GST_MAP_READ))
+  {
+    g_print ("Cannot map videoframe from buffer.\n");
+  }
+  
+  unsigned char* bufferUVData = (unsigned char*) (GST_VIDEO_FRAME_PLANE_DATA(&videoFrame, 0));
 
-  //g_print("N_PLANES = %d\n", (GST_VIDEO_INFO_N_PLANES(&videoInfo) == 1));
+  int stride = GST_VIDEO_FRAME_PLANE_STRIDE(&videoFrame, 0);
+  int width = GST_VIDEO_FRAME_WIDTH(&videoFrame);
+  int height = GST_VIDEO_FRAME_HEIGHT(&videoFrame);
 
+  g_print("stride: %d, width: %d, height: %d\n", stride, width, height);
 
   if (filter->silent == FALSE)
     g_print ("I'm plugged, therefore I'm in.\n");
 
+  for(int i=0;i < 100; i++)
+  {
+     g_print("bufferUVData: %d\n", bufferUVData[i]);
+  }
   /* just push out the incoming buffer without touching it */
   return gst_pad_push (filter->srcpad, buf);
 }
