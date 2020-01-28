@@ -53,3 +53,16 @@ gstmyfilterexample = library('gstmyfilterexample',
   install : true,
   install_dir : plugins_install_dir,
 )
+
+# Plugin 4 ( cavideoconverter)
+cavideoconverter_sources = [
+  'src/gstcavideoconverter.c',
+  ]
+
+gstcavideoconverter = library('gstcavideoconverter',
+  cavideoconverter_sources,
+  c_args: plugin_c_args,
+  dependencies : [gst_dep, gstvideo_dep],
+  install : true,
+  install_dir : plugins_install_dir,
+)
