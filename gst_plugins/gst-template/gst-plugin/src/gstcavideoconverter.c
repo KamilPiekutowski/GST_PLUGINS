@@ -111,8 +111,16 @@ static GstStaticPadTemplate sink_factory = GST_STATIC_PAD_TEMPLATE ("sink",
 static GstStaticPadTemplate src_factory = GST_STATIC_PAD_TEMPLATE ("src",
     GST_PAD_SRC,
     GST_PAD_ALWAYS,
-    GST_STATIC_CAPS ("ANY")
+    GST_STATIC_CAPS (GST_VIDEO_CAPS_MAKE (GST_CAPS_FORMAT) ";"
+        GST_VIDEO_CAPS_MAKE_WITH_FEATURES (GST_CAPS_FEATURE_MEMORY_DMABUF,
+            GST_CAPS_FORMAT))
     );
+
+//static GstStaticPadTemplate src_factory = GST_STATIC_PAD_TEMPLATE ("src",
+    //GST_PAD_SRC,
+    //GST_PAD_ALWAYS,
+    //GST_STATIC_CAPS ("ANY")
+    //);
 
 #define gst_cavideoconverter_parent_class parent_class
 G_DEFINE_TYPE (Gstcavideoconverter, gst_cavideoconverter, GST_TYPE_ELEMENT);
