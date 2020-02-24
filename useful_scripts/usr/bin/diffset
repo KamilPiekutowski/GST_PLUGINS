@@ -1,0 +1,62 @@
+#!/usr/bin/python
+
+import sys
+from os import path
+
+if len(sys.argv) == 2 and sys.argv[1] == "--help":
+    print("Usage: %s file1 file2" % sys.argv[0])
+    print("List differences in between the lines of two files.")
+    print("Differences are SORTED alfabetically.\n")
+    quit()
+
+elif len(sys.argv) < 3:
+    print("Usage: %s file1 file2" % sys.argv[0])
+    quit()
+
+file1_array = []
+file2_array = []
+
+if not path.exists(sys.argv[1]):
+    print("Cannot locate file \"%s\"." % sys.argv[1])
+    quit()
+
+if not path.exists(sys.argv[2]):
+    print("Cannot locate file \"%s\"." % sys.argv[2])
+    quit()
+
+with open(sys.argv[1]) as file:
+    for line in file:
+        file1_array.append(line.rstrip("\n"))
+
+with open(sys.argv[2]) as file:
+    for line in file:
+        file2_array.append(line.rstrip("\n"))
+
+#sorting two lists
+file1_array.sort()
+file2_array.sort()
+
+diff_array = []
+
+#compare two line and extract differences
+i = 0 #index for file1
+j = 0 #index for file2
+
+while i < len(file1_array) and j < len(file2_array):
+    if file1_array[i] == file2_array[j]:
+        i += 1
+        j += 1
+    elif file1_array[i] < file2_array[j]:
+        diff_array.append(file1_array[i])
+        diff_array.append(file2_array[j])
+        i += 1
+    elif file1_array[i] > file2_array[j]:
+        diff_array.append(file1_array[i])
+        diff_array.append(file2_array[j])
+        j += 1
+
+temp = list(dict.fromkeys(diff_array))
+temp.sort()
+
+for elem in temp:
+    print(elem);
