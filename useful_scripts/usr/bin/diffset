@@ -3,19 +3,96 @@
 import sys
 from os import path
 
-def app_to_array(option, diff_array, file1_array, file2_array, i, j):
-    """ Appends line to array based on provided argument\n """
-    """ i and j are current index that needs to be appended """
+def get_AND_array(file1_array, file2_array):
+    """ Returns common elements of two sets of lines """
 
-    if option == "xor" or option == "and":
-        diff_array.append(file1_array[i])
-        diff_array.append(file2_array[j])
+    i = 0 #index for file1
+    j = 0 #index for file2
 
-    if option == "left":
-        diff_array.append(file1_array[i])
+    diff_array = []
 
-    if option == "right":
-        diff_array.append(file2_array[j])
+    while i < len(file1_array) and j < len(file2_array):
+        if file1_array[i] == file2_array[j]:
+            diff_array.append(file1_array[i])
+            i += 1
+            j += 1
+
+        elif file1_array[i] < file2_array[j]:
+            i += 1
+
+        elif file1_array[i] > file2_array[j]:
+            j += 1
+
+    return diff_array
+
+def get_XOR_array(file1_array, file2_array):
+    """ Returns outer elements of two sets of lines """
+
+    i = 0 #index for file1
+    j = 0 #index for file2
+
+    diff_array = []
+
+    while i < len(file1_array) and  j < len(file2_array):
+        if file1_array[i] == file2_array[j]:
+            file1_array.pop(i)
+            file2_array.pop(j)
+
+        elif file1_array[i] < file2_array[j]:
+
+            i += 1
+
+        elif file1_array[i] > file2_array[j]:
+
+            j += 1
+
+    return file1_array + file2_array
+
+def get_LEFT_XOR_array(file1_array, file2_array):
+    """ Returns outer left elements of two sets of lines """
+
+    i = 0 #index for file1
+    j = 0 #index for file2
+
+    diff_array = []
+
+    while i < len(file1_array) and  j < len(file2_array):
+        if file1_array[i] == file2_array[j]:
+            file1_array.pop(i)
+            file2_array.pop(j)
+
+        elif file1_array[i] < file2_array[j]:
+
+            i += 1
+
+        elif file1_array[i] > file2_array[j]:
+
+            j += 1
+
+    return file1_array
+
+def get_RIGHT_XOR_array(file1_array, file2_array):
+    """ Returns outer right elements of two sets of lines """
+
+    i = 0 #index for file1
+    j = 0 #index for file2
+
+    diff_array = []
+
+    while i < len(file1_array) and  j < len(file2_array):
+        if file1_array[i] == file2_array[j]:
+            file1_array.pop(i)
+            file2_array.pop(j)
+
+        elif file1_array[i] < file2_array[j]:
+
+            i += 1
+
+        elif file1_array[i] > file2_array[j]:
+
+            j += 1
+
+    return file2_array
 
 def get_arguments():
     """ Parses option given at command line. Option must be\n """
@@ -76,38 +153,26 @@ def main():
         for line in file:
             file2_array.append(line.rstrip("\n"))
 
-    #sorting two lists
-    file1_array.sort()
-    file2_array.sort()
+    #running options
 
     diff_array = []
 
-    #compare two line and extract differences
-    i = 0 #index for file1
-    j = 0 #index for file2
+    print("option: %s" % option)
 
-    while i < len(file1_array) and j < len(file2_array):
-        if file1_array[i] == file2_array[j]:
-            if option == "and":
-                app_to_array(option, diff_array,
-                        file1_array, file2_array, i, j)
+    if option == "and":
+        diff_array = get_AND_array(file1_array, file2_array)
 
-            i += 1
-            j += 1
+    if option == "xor":
+        diff_array = get_XOR_array(file1_array, file2_array)
 
-        elif file1_array[i] < file2_array[j]:
-            if option != "and":
-                app_to_array(option, diff_array,
-                        file1_array, file2_array, i, j)
+    if option == "left":
+        diff_array = get_LEFT_XOR_array(file1_array, file2_array)
 
-            i += 1
+    if option == "right":
+        diff_array = get_RIGHT_XOR_array(file1_array, file2_array)
 
-        elif file1_array[i] > file2_array[j]:
-            if option != "and":
-                app_to_array(option, diff_array,
-                        file1_array, file2_array, i, j)
-
-            j += 1
+    #sorting two lists
+    diff_array.sort()
 
     temp = list(dict.fromkeys(diff_array))
     temp.sort()
