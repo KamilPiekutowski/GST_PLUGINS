@@ -153,11 +153,8 @@ def main():
         for line in file:
             file2_array.append(line.rstrip("\n"))
 
-    #running options
 
     diff_array = []
-
-    print("option: %s" % option)
 
     if option == "and":
         diff_array = get_AND_array(file1_array, file2_array)
@@ -171,13 +168,10 @@ def main():
     if option == "right":
         diff_array = get_RIGHT_XOR_array(file1_array, file2_array)
 
-    #sorting two lists
+    diff_array = list(dict.fromkeys(diff_array))
     diff_array.sort()
 
-    temp = list(dict.fromkeys(diff_array))
-    temp.sort()
-
-    for elem in temp:
+    for elem in diff_array:
         print(elem);
         
 
